@@ -27,6 +27,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".DeviceListActivity" />
+        <activity android:name=".ChatActivity" />
+        <activity android:name=".ConversationListActivity" />
+        <activity android:name=".ConversationHistoryActivity" />
     </application>
 
 </manifest>

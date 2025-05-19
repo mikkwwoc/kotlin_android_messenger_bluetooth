@@ -1,16 +1,15 @@
 package com.example.android.messengerbluetooth
 
 import android.Manifest
-import android.app.Activity
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothDevice
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.widget.Button
+import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
+import androidx.annotation.RequiresPermission
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -18,104 +17,96 @@ import androidx.core.content.ContextCompat
 class MainActivity : AppCompatActivity() {
 
     private lateinit var bluetoothAdapter: BluetoothAdapter
-
-    // Rejestracja requestu o włączenie Bluetooth (jeśli wyłączony)
-    private val enableBluetoothLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            Toast.makeText(this, "Bluetooth został włączony!", Toast.LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(this, "Bluetooth NIE został włączony!", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    // Sprawdzanie uprawnień do lokalizacji
-    private fun hasLocationPermission(): Boolean {
-        return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-    }
-
-    // Prośba o uprawnienia do lokalizacji
-    private fun requestLocationPermission() {
-        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), LOCATION_PERMISSION_REQUEST_CODE)
-    }
-
-    // Stała na kod żądania uprawnienia
-    companion object {
-        const val LOCATION_PERMISSION_REQUEST_CODE = 1001
-    }
+    private val REQUEST_ENABLE_BT = 1
+    private val REQUEST_BLUETOOTH_PERMISSIONS = 1001
+    private lateinit var chatService: BluetoothChatService
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+        checkBluetoothPermissions()
+    }
 
-        // Sprawdzamy uprawnienie do lokalizacji
-        if (hasLocationPermission()) {
-            setupBluetooth()
-        } else {
-            requestLocationPermission()
-        }
+    private fun checkBluetoothPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val permissions = arrayOf(
+                Manifest.permission.BLUETOOTH_CONNECT,
+                Manifest.permission.BLUETOOTH_SCAN
+            )
 
-        val button = findViewById<Button>(R.id.button)
-        button.setOnClickListener {
-            if (hasLocationPermission()) {
-                showPairedDevices()
-            } else {
-                Toast.makeText(this, "Brak uprawnień do lokalizacji, aby wyświetlić urządzenia Bluetooth", Toast.LENGTH_SHORT).show()
+            val missingPermissions = permissions.filter {
+                ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
             }
+
+            if (missingPermissions.isNotEmpty()) {
+                ActivityCompat.requestPermissions(this, missingPermissions.toTypedArray(), REQUEST_BLUETOOTH_PERMISSIONS)
+            } else {
+                initializeBluetooth()
+            }
+        } else {
+            initializeBluetooth()
         }
     }
 
-    // Ustawienie Bluetooth i wyświetlanie sparowanych urządzeń
-    private fun setupBluetooth() {
-        if (!bluetoothAdapter.isEnabled) {
-            val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-            enableBluetoothLauncher.launch(enableBtIntent)
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+    private fun initializeBluetooth() {
+        val btnConnect: Button = findViewById(R.id.btnConnect)
+        btnConnect.setOnClickListener {
+            val intent = Intent(this, DeviceListActivity::class.java)
+            startActivity(intent)
         }
-    }
-
-    // Wyświetlenie sparowanych urządzeń Bluetooth
-    private fun showPairedDevices() {
-        if (!bluetoothAdapter.isEnabled) {
-            Toast.makeText(this, "Bluetooth jest wyłączony. Proszę włączyć Bluetooth", Toast.LENGTH_SHORT).show()
+        val btnStartServer: Button = findViewById(R.id.btnStartServer)
+        btnStartServer.setOnClickListener {
+            val intent = Intent(this, ChatActivity::class.java)
+            intent.putExtra("is_server", true)
+            startActivity(intent)
+        }
+        val btnShowHistory: Button = findViewById(R.id.btnShowHistory)
+        btnShowHistory.setOnClickListener {
+            startActivity(Intent(this, ConversationListActivity::class.java))
+        }
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+        if (bluetoothAdapter == null) {
+            Toast.makeText(this, "Bluetooth not supported", Toast.LENGTH_SHORT).show()
+            finish()
             return
         }
 
-        // Sprawdzamy, czy mamy uprawnienie do lokalizacji
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            val pairedDevices: Set<BluetoothDevice> = bluetoothAdapter.bondedDevices
+        if (!bluetoothAdapter.isEnabled) {
+            val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
+        }
 
-            if (pairedDevices.isEmpty()) {
-                Toast.makeText(this, "Brak sparowanych urządzeń!", Toast.LENGTH_SHORT).show()
+        chatService = BluetoothChatService(bluetoothAdapter, this)
+
+        val btnListDevices: Button = findViewById(R.id.btnListDevices)
+        val txtDevices: TextView = findViewById(R.id.txtDevices)
+
+        btnListDevices.setOnClickListener {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+                val devices = bluetoothAdapter.bondedDevices
+                val list = devices.joinToString("\n") { "${it.name} - ${it.address}" }
+                txtDevices.text = "Sparowane urządzenia:\n$list"
             } else {
-                val deviceNames = pairedDevices.map { it.name ?: it.address }
-                val deviceList = pairedDevices.toList()
-
-                // Pokazujemy listę sparowanych urządzeń
-                val builder = AlertDialog.Builder(this)
-                builder.setTitle("Wybierz urządzenie")
-                builder.setItems(deviceNames.toTypedArray()) { _, which ->
-                    val selectedDevice = deviceList[which]
-                    Toast.makeText(this, "Wybrano: ${selectedDevice.name}", Toast.LENGTH_SHORT).show()
-                }
-                builder.show()
+                Toast.makeText(this, "Brak dostępu do Bluetooth", Toast.LENGTH_SHORT).show()
             }
-        } else {
-            requestLocationPermission()
         }
     }
 
-    // Obsługa odpowiedzi na prośbę o uprawnienia
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Użytkownik zaakceptował uprawnienie, możemy używać Bluetooth
-                setupBluetooth()
+        if (requestCode == REQUEST_BLUETOOTH_PERMISSIONS) {
+            if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
+                initializeBluetooth()
             } else {
-                Toast.makeText(this, "Brak zgody na lokalizację", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Bluetooth permissions are required", Toast.LENGTH_LONG).show()
+                finish()
             }
         }
     }

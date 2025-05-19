@@ -1,23 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
-    android:layout_width="match_parent"
-    android:layout_gravity="center_vertical"
-    android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
-    tools:context=".MainActivity">
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Komunikator tekstowy Bluetooth"
-        android:textSize="30sp" />
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
     <Button
-        android:id="@+id/button"
-        android:layout_width="wrap_content"
+        android:id="@+id/btnListDevices"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:text="Sprawdź Bluetooth" />
+        android:text="Lista sparowanych urządzeń" />
+
+    <TextView
+        android:id="@+id/txtDevices"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="20dp"
+        android:text="Urządzenia:" />
+    <Button
+        android:id="@+id/btnConnect"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Połącz z urządzeniem" />
+    <Button
+        android:id="@+id/btnStartServer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Rozpocznij czat jako serwer" />
+    <Button
+        android:id="@+id/btnShowHistory"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Historia rozmów" />
 </LinearLayout>
