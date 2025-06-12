@@ -1,20 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:padding="24dp"
+    android:background="?android:colorBackground">
 
     <TextView
-        android:layout_width="wrap_content"
+        android:id="@+id/historyTitle"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Zapisane rozmowy"
-        android:textSize="18sp"
+        android:textSize="22sp"
         android:textStyle="bold"
-        android:paddingBottom="8dp" />
+        android:paddingBottom="16dp"
+        android:textColor="?android:textColorPrimary" />
 
     <ListView
         android:id="@+id/conversationListView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:divider="@android:color/darker_gray"
+        android:dividerHeight="1dp"
+        android:background="?android:colorBackground"
+        android:padding="4dp" />
+
 </LinearLayout>

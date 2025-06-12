@@ -1,68 +1,99 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:padding="16dp"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="?android:colorBackground">
 
+    <!-- Informacje o roli -->
     <TextView
         android:id="@+id/roleLabel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Tryb: ..."
-        android:textSize="16sp"
+        android:textSize="18sp"
         android:textStyle="bold"
-        android:paddingBottom="8dp"/>
+        android:paddingBottom="8dp"
+        android:textColor="?android:textColorPrimary" />
+
+    <!-- Zmiana nazwy konwersacji (dla serwera) -->
     <LinearLayout
         android:id="@+id/chatKeyContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:visibility="gone"
-        android:paddingBottom="8dp">
+        android:paddingBottom="12dp">
 
-        <EditText
-            android:id="@+id/editChatKey"
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="0dp"
-            android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:hint="Nowa nazwa konwersacji" />
+            android:layout_weight="1">
 
-        <Button
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editChatKey"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Nowa nazwa konwersacji" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnChangeChatKey"
+            style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Zmień" />
+            android:text="Zmień"
+            android:layout_marginStart="8dp" />
     </LinearLayout>
+
+    <!-- Historia wiadomości -->
     <ScrollView
         android:id="@+id/chatScroll"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:background="@android:color/transparent">
 
         <TextView
             android:id="@+id/chatView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text=""
-            android:textSize="16sp" />
+            android:textSize="16sp"
+            android:textColor="?android:textColorPrimary" />
     </ScrollView>
 
-    <EditText
-        android:id="@+id/inputMessage"
+    <!-- Pole wiadomości -->
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Wpisz wiadomość" />
+        android:layout_marginTop="8dp">
 
-    <Button
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/inputMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Wpisz wiadomość" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Przycisk wyślij -->
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnSend"
+        style="@style/Widget.Material3.Button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Wyślij" />
+        android:text="Wyślij"
+        android:layout_marginTop="8dp" />
 
-    <Button
+    <!-- Przycisk powrotu -->
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnBack"
+        style="@style/Widget.Material3.Button.OutlinedButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Wróć do strony głównej" />
+        android:text="Wróć do strony głównej"
+        android:layout_marginTop="4dp" />
+
 </LinearLayout>
